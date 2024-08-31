@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Angle Controller</title>
+    
+</head>
+<body>
+    <div class="controller-box">
+        <h1>Angle Controller</h1>
+        <div class="control-group">
+            <label for="angleController">Enter Angle: </label>
+            <input type="number" id="angleController" value="0" min="0" max="360">
+        </div>
+        <div class="control-group">
+            <div class="circle-slider" id="circleSlider">
+                <div class="handle" id="sliderHandle"></div>
+                <div class="mark" style="top: -5%; left: 50%;"></div>
+                <div class="angle-text" style="top: -18px; left: 50%;">Start</div>
+                <div class="mark" style="top: 105%; left: 50%;"></div>
+                <div class="angle-text" style="top: 115%; left: 50%;">Midpoint</div>
+            </div>
+        </div>
+        
+        <div id= "angleSelect" class="control-group radio-set">
+            <label for="angleSelect">Select Angle: </label>
+            <label><input type="radio" name="angleChoice" value="0" id="angleChoice0">0°</label>
+            <label><input type="radio" name="angleChoice" value="45" id="angleChoice45">45°</label>
+            <label><input type="radio" name="angleChoice" value="60" id="angleChoice60">60°</label>
+            <label><input type="radio" name="angleChoice" value="90" id="angleChoice90">90°</label>
+            <label><input type="radio" name="angleChoice" value="180" id="angleChoice180">180°</label>
+        </div>
+    </div>
+
+    <script>
+        const angleField = document.getElementById('angleController');
+        const sliderCircle = document.getElementById('circleSlider');
+        const sliderHandle = document.getElementById('sliderHandle');
+        const angleChoices = document.querySelectorAll('input[name="angleChoice"]');
+
+        function setAngle(value) {
+            const adjustedValue = value % 360;
+            angleField.value = adjustedValue;
+            angleChoices.forEach(choice => {
+                choice.checked = choice.value == adjustedValue;
+            });
+            moveHandle(adjustedValue);
+        }
+
+        function moveHandle(angle) {
+            const circleRadius = sliderCircle.offsetWidth / 2 - 13;
+            const radianAngle = (angle - 90) * (Math.PI / 180);
+            const posX = circleRadius + circleRadius * Math.cos(radianAngle);
+            const posY = circleRadius + circleRadius * Math.sin(radianAngle);
+            sliderHandle.style.left = `${posX}px`;
+            sliderHandle.style.top = `${posY}px`;
+        }
+
+        angleField.addEventListener('input', (e) => {
+            let inputValue = parseInt(e.target.value);
+            if (isNaN(inputValue)) inputValue = 0;
+            setAngle(inputValue);
+        });
+
+        sliderCircle.addEventListener('mousedown', beginDrag);
+        document.addEventListener('mousemove', executeDrag);
+        document.addEventListener('mouseup', terminateDrag);
+
+        let isDragging = false;
+
+        function beginDrag(e) {
+            isDragging = true;
+            executeDrag(e);
+        }
+
+        function executeDrag(e) {
+            if (!isDragging) return;
+            const boundingRect = sliderCircle.getBoundingClientRect();
+            const dx = e.clientX - boundingRect.left - boundingRect.width / 2;
+            const dy = e.clientY - boundingRect.top - boundingRect.height / 2;
+            const calculatedAngle = (Math.atan2(dy, dx) * (180 / Math.PI) + 90 + 360) % 360;
+            setAngle(Math.round(calculatedAngle));
+        }
+
+        function terminateDrag() {
+            isDragging = false;
+        }
+
+        angleChoices.forEach(choice => {
+            choice.addEventListener('change', (e) => {
+                setAngle(e.target.value);
+            });
+        });
+
+        setAngle(0);
+    </script>
+</body>
+</html>
